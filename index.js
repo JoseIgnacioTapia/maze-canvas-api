@@ -107,10 +107,19 @@ const stepThroughCell = (row, column) => {
       horizontals[row][column] = true;
     }
 
+    // Visit that next cell
     stepThroughCell(nextRow, nextColumn);
   }
-
-  // Visit that next cell
 };
 
 stepThroughCell(startRow, startColumn);
+
+horizontals.forEach((row) => {
+  row.forEach((open) => {
+    if (open) {
+      return;
+    }
+
+    const wall = Bodies.rectangle();
+  });
+});
