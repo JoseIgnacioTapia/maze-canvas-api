@@ -1,6 +1,6 @@
-const { Engine, Render, Runner, World, Bodies, Body } = Matter;
+const { Engine, Render, Runner, World, Bodies, Body, Events } = Matter;
 
-const cells = 15;
+const cells = 3;
 const width = 600;
 const height = 600;
 
@@ -62,8 +62,6 @@ const horizontals = Array(cells - 1)
 
 const startRow = Math.floor(Math.random() * cells);
 const startColumn = Math.floor(Math.random() * cells);
-
-console.log(startRow, startColumn);
 
 const stepThroughCell = (row, column) => {
   // If i have visted the cell at [row, column], the return
@@ -162,6 +160,7 @@ const goal = Bodies.rectangle(
   unitLength * 0.7,
   unitLength * 0.7,
   {
+    label: 'goal',
     isStatic: true
   }
 );
@@ -171,12 +170,13 @@ World.add(world, goal);
 const ball = Bodies.circle(
   unitLength / 2,
   unitLength / 2,
-  unitLength / 4 );
+  unitLength / 4, {
+    label: 'ball'
+  });
 World.add(world, ball);
 
 document.addEventListener('keydown', event => {
   const { x, y } = ball.velocity;
-  console.log(x, y);
 
   if(event.keyCode === 87) {
     Body.setVelocity(ball, { x, y: y - 5 });
@@ -195,3 +195,16 @@ document.addEventListener('keydown', event => {
   }
 });
 
+// Win Condition
+Events.on(engine, 'collisionStart', event => {
+  event.pairs.forEach((collision) => {
+    const labels = ['ball', 'goal'];
+
+    if (
+      labels.includes(collision.bodyA.label) &&
+      labels.includes(collision.bodyB.label)
+    ) {
+      console.log('User won!');
+    }
+  });
+});
