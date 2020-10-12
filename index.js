@@ -1,14 +1,15 @@
 function playMaze() {
   const { Engine, Render, Runner, World, Bodies, Body, Events } = Matter;
-
-  const cellsHorizontal = 3;
+  
+  // Setting important variables
+  const cellsHorizontal = 6;
   const cellsVertical = 3;
   const width = window.innerWidth;
   const height = window.innerHeight;
-
+  // Calculating cell sides
   const unitLengthX = width / cellsHorizontal;
   const unitLengthY = height / cellsVertical;
-
+  // Setting the display 
   const engine = Engine.create();
   engine.world.gravity.y = 0;
   const { world } = engine;
@@ -26,15 +27,15 @@ function playMaze() {
 
   // Walls
   const walls = [
-    Bodies.rectangle(width / 2, 0, width, 2, { isStatic: true }),
-    Bodies.rectangle(width / 2, height, width, 2, { isStatic: true }),
-    Bodies.rectangle(0, height / 2, 2, height, { isStatic: true }),
-    Bodies.rectangle(width, height / 2, 2, height, { isStatic: true }),
+    Bodies.rectangle(width / 2, 0, width, 2, { isStatic: true }),       // Roof
+    Bodies.rectangle(width / 2, height, width, 2, { isStatic: true }),  // Base
+    Bodies.rectangle(0, height / 2, 2, height, { isStatic: true }),     // Left wall
+    Bodies.rectangle(width, height / 2, 2, height, { isStatic: true }), // Right Wall
   ];
   World.add(world, walls);
 
   // Maze generation
-
+   
   const shuffle = (arr) => {
     let counter = arr.length;
 
@@ -53,15 +54,15 @@ function playMaze() {
 
   const grid = Array(cellsVertical)
     .fill(null)
-    .map(() => Array(cellsHorizontal).fill(false));
+    .map(() => Array(cellsHorizontal).fill(false));   // Filling the grids with false
 
   const verticals = Array(cellsVertical)
     .fill(null)
-    .map(() => Array(cellsHorizontal - 1).fill(false));
+    .map(() => Array(cellsHorizontal - 1).fill(false));  // Filling the wall verticals
 
   const horizontals = Array(cellsVertical - 1)
     .fill(null)
-    .map(() => Array(cellsHorizontal).fill(false));
+    .map(() => Array(cellsHorizontal).fill(false));   // Filling the wall horizontals
 
   const startRow = Math.floor(Math.random() * cellsVertical);
   const startColumn = Math.floor(Math.random() * cellsHorizontal);
@@ -92,7 +93,7 @@ function playMaze() {
         nextColumn < 0 ||
         nextColumn >= cellsHorizontal
       ) {
-        continue;
+        continue;    // If it is out of bounds, continue to the next neighbor
       }
 
       // If we have visited that neighbor, continue to the next neighbor
@@ -112,18 +113,18 @@ function playMaze() {
       }
 
       // Visit that next cell
-      stepThroughCell(nextRow, nextColumn);
+      stepThroughCell(nextRow, nextColumn);   // We start again to do the same procedure from the next row and next column
     }
   };
 
-  stepThroughCell(startRow, startColumn);
+  stepThroughCell(startRow, startColumn);   // We call the function to create the raze
 
   horizontals.forEach((row, rowIndex) => {
     row.forEach((open, columnIndex) => {
-      if (open) {
+      if (open) {   // We check if there is no false
         return;
       }
-
+      // If there is a false one then we draw a wall
       const wall = Bodies.rectangle(
         columnIndex * unitLengthX + unitLengthX / 2,
         rowIndex * unitLengthY + unitLengthY,
@@ -137,7 +138,7 @@ function playMaze() {
           }
         }
       );
-      World.add(world, wall);
+      World.add(world, wall);    // We add the wall to the world
     });
   });
 
@@ -165,6 +166,7 @@ function playMaze() {
   });
 
   // GOAL
+  // We draw a square in the lower right corner
   const goal = Bodies.rectangle(
     width - unitLengthX / 2,
     height - unitLengthY / 2,
@@ -181,6 +183,7 @@ function playMaze() {
   World.add(world, goal);
 
   // BALL
+  // We draw a ball in the upper left corner
   const ballRadius = Math.min(unitLengthX, unitLengthY) / 4;
   const ball = Bodies.circle(
     unitLengthX / 2,
@@ -192,24 +195,25 @@ function playMaze() {
       }
     });
   World.add(world, ball);
-
+  
+  // We configure the controls with the W, A, S and D keys
   document.addEventListener('keydown', event => {
     const { x, y } = ball.velocity;
 
     if(event.keyCode === 87) {
-      Body.setVelocity(ball, { x, y: y - 5 });
+      Body.setVelocity(ball, { x, y: y - 5 });  // Move to up
     }
 
     if (event.keyCode === 68) {
-      Body.setVelocity(ball, { x: x + 5, y });
+      Body.setVelocity(ball, { x: x + 5, y });  // Move to right
     }
 
     if (event.keyCode === 83) {
-      Body.setVelocity(ball, { x, y: y + 5 });
+      Body.setVelocity(ball, { x, y: y + 5 });  // Move to down 
     }
 
     if(event.keyCode === 65) {
-      Body.setVelocity(ball, { x: x - 5, y });
+      Body.setVelocity(ball, { x: x - 5, y });  // Move to left
     }
   });
 
@@ -217,18 +221,20 @@ function playMaze() {
   Events.on(engine, 'collisionStart', event => {
     event.pairs.forEach((collision) => {
       const labels = ['ball', 'goal'];
-
+      // We check if the ball and the goal have collided
       if (
-        labels.includes(collision.bodyA.label) &&
+        labels.includes(collision.bodyA.label) &&   
         labels.includes(collision.bodyB.label)
       ) {
-        document.querySelector('.winner').classList.remove('hidden');
-        world.gravity.y = 1;
+        document.querySelector('.winner').classList.remove('hidden');  // We show message
+        // We make the inner walls fall down by gravity
+        world.gravity.y = 1;   
         world.bodies.forEach(body => {
           if(body.label === 'wall') {
             Body.setStatic(body, false);
           }
         });
+        // We added a button to restart the maze
         const btn = document.querySelector('.btn');
         btn.addEventListener('click', () => location.reload()); 
       }
